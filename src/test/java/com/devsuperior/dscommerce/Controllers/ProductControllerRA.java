@@ -1,19 +1,25 @@
 package com.devsuperior.dscommerce.Controllers;
 
-import com.devsuperior.dscommerce.tests.TokenUtil;
-import org.apache.http.entity.ContentType;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static io.restassured.RestAssured.baseURI;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.restassured.RestAssured.*;
-import static io.restassured.matcher.RestAssuredMatchers.*;
-import static org.hamcrest.Matchers.*;
+import org.json.JSONException;
+import org.json.simple.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.devsuperior.dscommerce.tests.TokenUtil;
+
+import io.restassured.http.ContentType;
+
 
 
 public class ProductControllerRA {
@@ -28,8 +34,8 @@ public class ProductControllerRA {
 
         postProductInstance = new HashMap<>();
         postProductInstance.put("name", "Meu Produto");
-        postProductInstance.put("description", "Um produto muito bom para o meu uso.");
-        postProductInstance.put("imgUrl", "http://imgurldomeuproduto.com.br/1234567890");
+        postProductInstance.put("description", "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Qui ad, adipisci illum ipsam velit et odit eaque reprehenderit ex maxime delectus dolore labore, quisquam quae tempora natus esse aliquam veniam doloremque quam minima culpa alias maiores commodi. Perferendis enim");
+        postProductInstance.put("imgUrl", "http://imgurldomeuproduto.com.br/1234567890.jpg");
         postProductInstance.put("price", 200.00);
 
         List<Map<String, Object>> categories = new ArrayList<>();
@@ -38,7 +44,7 @@ public class ProductControllerRA {
         category1.put("id", 2);
 
         Map<String, Object> category2 = new HashMap<>();
-        category1.put("id", 3);
+        category2.put("id", 3);
 
         categories.add(category1);
         categories.add(category2);
@@ -111,17 +117,54 @@ public class ProductControllerRA {
         given()
                 .header("Content-type", "application-json")
                 .header("Authorization", "Bearer " + adminToken)
+                .body(newObject)
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
 
                 .when()
                     .post("/products")
-                    .body(newObject)
-                    .contentType(ContentType.APPLICATION_JSON)
-                    .accept(ContentType.APPLICATION_JSON)
 
                 .then()
-                    .statusCode(200)
-                    .body("name", equalTo("Meu produto"))
-                    .body("price", is(200.00))
-                    .body("categories", hasItems(2, 3));
+                    .statusCode(201)
+                    .body("name", equalTo("Meu Produto"))
+                    .body("price", is(200.00F))
+                    .body("categories.id", hasItems(2, 3));
+    }
+
+    @Test
+    public void insertProductShouldReturnUnprocessableEntityWhenProductDataIsInvalid() {
+        postProductInstance.put("name", "ab");
+        JSONObject newObject = new JSONObject(postProductInstance);
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(newObject)
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+
+                .when()
+                .post("/products")
+
+                .then()
+                .statusCode(422);
+    }
+
+    @Test
+    public void insertProductShouldReturnUnauthorizedWhenNoToken() {
+
+        JSONObject newObject = new JSONObject(postProductInstance);
+
+        given()
+                .header("Content-type", "application-json")
+                .body(newObject)
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+
+                .when()
+                .post("/products")
+
+                .then()
+                .statusCode(401);
     }
 }

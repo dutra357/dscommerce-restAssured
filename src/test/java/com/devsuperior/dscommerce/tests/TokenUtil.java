@@ -4,6 +4,8 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
 import static io.restassured.RestAssured.*;
+import static io.restassured.matcher.RestAssuredMatchers.*;
+import static org.hamcrest.Matchers.*;
 
 
 public class TokenUtil {
@@ -11,7 +13,6 @@ public class TokenUtil {
     public static String obtainAccessToken(String username, String password) {
         Response response = authRequest(username, password);
         JsonPath jsonBody = response.jsonPath();
-
         return jsonBody.getString("access_token");
     }
 
@@ -29,8 +30,5 @@ public class TokenUtil {
 
                         .when()
                         .post("/oauth2/token");
-
-
-
     }
 }
