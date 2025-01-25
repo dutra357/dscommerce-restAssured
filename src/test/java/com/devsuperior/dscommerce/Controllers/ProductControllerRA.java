@@ -167,4 +167,42 @@ public class ProductControllerRA {
                 .then()
                 .statusCode(401);
     }
+
+    @Test
+    public void insertProductShouldReturnUnauthorizedWhenInvalidToken() {
+
+        JSONObject newObject = new JSONObject(postProductInstance);
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + adminToken + "1234")
+                .body(newObject)
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+
+                .when()
+                .post("/products")
+
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    public void insertProductShouldReturnForbiddenWhenLoggedAsClient() {
+
+        JSONObject newObject = new JSONObject(postProductInstance);
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + clientToken)
+                .body(newObject)
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+
+                .when()
+                .post("/products")
+
+                .then()
+                .statusCode(403);
+    }
 }
