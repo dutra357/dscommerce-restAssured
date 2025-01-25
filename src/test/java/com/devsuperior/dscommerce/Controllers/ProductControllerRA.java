@@ -1,5 +1,6 @@
 package com.devsuperior.dscommerce.Controllers;
 
+import com.devsuperior.dscommerce.tests.TokenUtil;
 import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,9 @@ import static org.hamcrest.Matchers.*;
 public class ProductControllerRA {
 
     private Map<String, Object> postProductInstance;
+    private String clientUsername, clientPassword,
+            adminUsername, adminPassword, clientToken, adminToken;
+
     @BeforeEach
     public void setUp() {
         baseURI = "http://localhost:8080";
@@ -40,6 +44,15 @@ public class ProductControllerRA {
         categories.add(category2);
 
         postProductInstance.put("categories", categories);
+
+        clientUsername = "maria@gmail.com";
+        clientPassword = "123456";
+
+        adminUsername = "alex@gmail.com";
+        adminPassword = "123456";
+
+        clientToken = TokenUtil.obtainAccessToken(clientUsername, clientPassword);
+        adminToken = TokenUtil.obtainAccessToken(adminUsername, adminPassword);
     }
 
     @Test
