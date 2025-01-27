@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,8 @@ import org.junit.jupiter.api.Test;
 import com.devsuperior.dscommerce.tests.TokenUtil;
 
 import io.restassured.http.ContentType;
-
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 
 public class ProductControllerRA {
@@ -204,5 +204,80 @@ public class ProductControllerRA {
 
                 .then()
                 .statusCode(403);
+    }
+
+    @Test
+    public void deleteShouldReturnNoContentWhenIdExistsAndAdminLogged() {
+        Long existingProductId = 25L;
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + adminToken)
+
+                .when()
+                .delete("/products/{id}", existingProductId)
+
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    public void deleteShouldReturnNotFoundWhenIdDoesNotExistsAndAdminLogged() {
+        Long nonExistingProductId = 9999L;
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + adminToken)
+
+                .when()
+                .delete("/products/{id}", nonExistingProductId)
+
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void deleteShouldReturnBadRequestWhenDependentIdAndAdminLogged() {
+        Long dependentId = 1L;
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + adminToken)
+
+                .when()
+                .delete("/products/{id}", dependentId)
+
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void deleteShouldReturnForbiddenWhenClientLogged() {
+        Long dependentId = 1L;
+
+        given()
+                .header("Content-type", "application-json")
+                .header("Authorization", "Bearer " + clientToken)
+
+                .when()
+                .delete("/products/{id}", dependentId)
+
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    public void deleteShouldReturnUnauthorizedWhenNobodyIsLogged() {
+        Long dependentId = 1L;
+
+        given()
+                .header("Content-type", "application-json")
+
+                .when()
+                .delete("/products/{id}", dependentId)
+
+                .then()
+                .statusCode(401);
     }
 }
